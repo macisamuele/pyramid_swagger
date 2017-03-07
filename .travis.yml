@@ -4,6 +4,8 @@ env:
 - TOX_ENV=py27
 - TOX_ENV=py34
 - TOX_ENV=py27-pyramid15
+- TOX_ENV=py27-pyramid17-webob16
+- TOX_ENV=py35-pyramid17-webob16
 - TOX_ENV=docs
 - TOX_ENV=pep8
 install:

@@ -130,6 +130,19 @@ def test_validation_content_type_with_json():
     fake_validator.validate.assert_called_once_with(body)
 
 
+def test_validation_content_type_with_json_no_charset():
+    fake_schema = mock.Mock(response_body_schema={'type': 'object'})
+    fake_validator = mock.Mock(schema=fake_schema)
+    body = {'status': 'good'}
+    response = Response(
+        body=simplejson.dumps(body),
+        headers={'Content-Type': 'application/json'},
+    )
+    validator_map = mock.Mock(spec=ValidatorMap, response=fake_validator)
+    validate_response(response, validator_map)
+    fake_validator.validate.assert_called_once_with(body)
+
+
 def test_skips_validating_errors():
     fake_schema = mock.Mock(response_body_schema={'type': 'string'})
     fake_validator = mock.Mock(schema=fake_schema)
