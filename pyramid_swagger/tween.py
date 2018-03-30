@@ -422,13 +422,9 @@ def get_exclude_paths(registry):
     """Compiles a list of paths that should not be validated against.
         :rtype: list of compiled validation regexes
     """
-    # TODO(#63): remove deprecated `skip_validation` setting in v2.0.
     regexes = registry.settings.get(
-        'pyramid_swagger.skip_validation',
-        registry.settings.get(
-            'pyramid_swagger.exclude_paths',
-            DEFAULT_EXCLUDED_PATHS
-        )
+        'pyramid_swagger.exclude_paths',
+        DEFAULT_EXCLUDED_PATHS,
     )
 
     # being nice to users using strings :p

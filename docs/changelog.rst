@@ -1,7 +1,11 @@
 Changelog
 =========
 
-2.7.0 (2019--5-07)
+2.x.x (2019-xx-xx)
+++++++++++++++++++++++++++
+* Deprecate support for `skip_validation` setting
+
+2.7.0 (2019-05-07)
 ++++++++++++++++++++++++++
 * Remove not needed deprecation warnings (see #238)
 * Make ``pyramid_swagger`` compatible with ``jsonschema>3`` (see #327)

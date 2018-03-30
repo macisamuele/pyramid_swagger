@@ -68,16 +68,6 @@ def test_exclude_path_with_overrides():
     )
 
 
-def test_exclude_path_with_old_setting():
-    # TODO(#63): remove deprecated `skip_validation` setting in v2.0.
-    paths = [r'/foo/', r'/bar/']
-    assert_eq_regex_lists(
-        get_exclude_paths(
-            Mock(settings={'pyramid_swagger.skip_validation': paths})),
-        [re.compile(r) for r in paths]
-    )
-
-
 def test_response_content_type_missing_raises_5xx():
     with pytest.raises(ResponseValidationError) as excinfo:
         prepare_body(
