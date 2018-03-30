@@ -30,22 +30,14 @@ from pyramid_swagger.exceptions import RequestAuthenticationError
 from pyramid_swagger.exceptions import RequestValidationError
 from pyramid_swagger.exceptions import ResponseValidationError
 from pyramid_swagger.model import PathNotMatchedError
+from pyramid_swagger.settings import DEFAULT_EXCLUDED_PATHS  # imported to guarantee backward compatibility
+from pyramid_swagger.settings import DEFAULT_SWAGGER_VERSIONS  # imported to guarantee backward compatibility
+from pyramid_swagger.settings import SUPPORTED_SWAGGER_VERSIONS  # imported to guarantee backward compatibility
+from pyramid_swagger.settings import SWAGGER_12  # imported to guarantee backward compatibility
+from pyramid_swagger.settings import SWAGGER_20  # imported to guarantee backward compatibility
 
 
 log = logging.getLogger(__name__)
-
-
-SWAGGER_12 = '1.2'
-SWAGGER_20 = '2.0'
-DEFAULT_SWAGGER_VERSIONS = [SWAGGER_20]
-SUPPORTED_SWAGGER_VERSIONS = [SWAGGER_12, SWAGGER_20]
-
-
-DEFAULT_EXCLUDED_PATHS = [
-    r'^/static/?',
-    r'^/api-docs/?',
-    r'^/swagger.(json|yaml)',
-]
 
 
 class Settings(namedtuple(

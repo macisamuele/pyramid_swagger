@@ -62,7 +62,7 @@ A few relevant settings for your `Pyramid .ini file <http://docs.pylonsproject.o
 
         # Exclude certain endpoints from validation. Takes a list of regular
         # expressions.
-        # Default: ^/static/? ^/api-docs/? ^/swagger.json
+        # Default: ^/static/? ^/api-docs/? ^/swagger.(json|yaml)
         pyramid_swagger.exclude_paths = ^/static/? ^/api-docs/? ^/swagger.json
 
         # Exclude pyramid routes from validation. Accepts a list of strings

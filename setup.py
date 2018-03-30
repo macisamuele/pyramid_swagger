@@ -44,6 +44,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'bravado-core >= 4.8.4',
+        'cached-property',
         'jsonschema',
         'pyramid',
         'simplejson',
