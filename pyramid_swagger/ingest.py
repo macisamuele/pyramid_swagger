@@ -153,13 +153,14 @@ def get_swagger_schema(settings):
     :type settings: dict
     :returns: a :class:`pyramid_swagger.model.SwaggerSchema`
     """
-    schema_dir = settings.get('pyramid_swagger.schema_directory', 'api_docs')
+    pyramid_swagger_settings = settings['pyramid_swagger_settings']
+    schema_dir = pyramid_swagger_settings.schema_directory
     resource_listing = get_resource_listing(
         schema_dir,
-        settings.get('pyramid_swagger.generate_resource_listing', False)
+        pyramid_swagger_settings.generate_resource_listing,
     )
 
-    if settings.get('pyramid_swagger.enable_swagger_spec_validation', True):
+    if pyramid_swagger_settings.enable_swagger_spec_validation:
         validate_swagger_schema(schema_dir, resource_listing)
 
     return compile_swagger_schema(schema_dir, resource_listing)
@@ -176,9 +177,9 @@ def get_swagger_spec(settings):
     :type settings: dict
     :rtype: :class:`bravado_core.spec.Spec`
     """
-    schema_dir = settings.get('pyramid_swagger.schema_directory', 'api_docs/')
-    schema_filename = settings.get('pyramid_swagger.schema_file',
-                                   'swagger.json')
+    pyramid_swagger_settings = settings['pyramid_swagger_settings']
+    schema_dir = pyramid_swagger_settings.schema_directory
+    schema_filename = pyramid_swagger_settings.schema_file
     schema_path = os.path.join(schema_dir, schema_filename)
     schema_url = urlparse.urljoin('file:', pathname2url(os.path.abspath(schema_path)))
 
@@ -189,7 +190,8 @@ def get_swagger_spec(settings):
     return Spec.from_dict(
         spec_dict,
         config=create_bravado_core_config(settings),
-        origin_url=schema_url)
+        origin_url=schema_url,
+    )
 
 
 def create_bravado_core_config(settings):

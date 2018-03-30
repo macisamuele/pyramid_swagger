@@ -4,14 +4,15 @@ Import this module to add the validation tween to your pyramid app.
 """
 from __future__ import absolute_import
 
-import pyramid
+import pyramid.tweens
 
 from pyramid_swagger.api import build_swagger_20_swagger_schema_views
 from pyramid_swagger.api import register_api_doc_endpoints
 from pyramid_swagger.ingest import get_swagger_schema
 from pyramid_swagger.ingest import get_swagger_spec
 from pyramid_swagger.renderer import PyramidSwaggerRendererFactory
-from pyramid_swagger.tween import get_swagger_versions
+from pyramid_swagger.settings import PyramidSwaggerSettings
+from pyramid_swagger.tween import get_swagger_versions  # noqa: imported to guarantee backward compatibility
 from pyramid_swagger.tween import SWAGGER_12
 from pyramid_swagger.tween import SWAGGER_20
 
@@ -21,7 +22,11 @@ def includeme(config):
     :type config: :class:`pyramid.config.Configurator`
     """
     settings = config.registry.settings
-    swagger_versions = get_swagger_versions(settings)
+
+    pyramid_swagger_settings = PyramidSwaggerSettings.normalize(settings)
+    settings['pyramid_swagger_settings'] = pyramid_swagger_settings
+
+    swagger_versions = pyramid_swagger_settings.swagger_versions
 
     # for rendering /swagger.yaml
     config.add_renderer(
@@ -47,14 +52,16 @@ def includeme(config):
 
     config.add_renderer('pyramid_swagger', PyramidSwaggerRendererFactory())
 
-    if settings.get('pyramid_swagger.enable_api_doc_views', True):
+    if pyramid_swagger_settings.enable_api_doc_views:
         if SWAGGER_12 in swagger_versions:
             register_api_doc_endpoints(
                 config,
-                settings['pyramid_swagger.schema12'].get_api_doc_endpoints())
+                settings['pyramid_swagger.schema12'].get_api_doc_endpoints(),
+            )
 
         if SWAGGER_20 in swagger_versions:
             register_api_doc_endpoints(
                 config,
                 build_swagger_20_swagger_schema_views(config),
-                base_path=settings.get('pyramid_swagger.base_path_api_docs', ''))
+                base_path=pyramid_swagger_settings.base_path_api_docs,
+            )

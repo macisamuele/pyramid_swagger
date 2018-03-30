@@ -41,7 +41,7 @@ def sample(request):
 @view_config(route_name='echo_date', request_method='POST', renderer='pyramid_swagger')
 def date_view(request):
 
-    if '2.0' in request.registry.settings['pyramid_swagger.swagger_versions']:
+    if '2.0' in request.registry.settings['pyramid_swagger_settings'].swagger_versions:
         # Swagger 2.0 endpoint handling
         assert isinstance(request.swagger_data['body']['date'], datetime.date)
     else:

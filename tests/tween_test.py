@@ -20,11 +20,10 @@ from pyramid_swagger.exceptions import ResponseValidationError
 from pyramid_swagger.load_schema import SchemaValidator
 from pyramid_swagger.load_schema import ValidatorMap
 from pyramid_swagger.model import PathNotMatchedError
+from pyramid_swagger.settings import PyramidSwaggerSettings
 from pyramid_swagger.tween import DEFAULT_EXCLUDED_PATHS
-from pyramid_swagger.tween import get_exclude_paths
 from pyramid_swagger.tween import get_op_for_request
 from pyramid_swagger.tween import get_swagger_objects
-from pyramid_swagger.tween import get_swagger_versions
 from pyramid_swagger.tween import handle_request
 from pyramid_swagger.tween import prepare_body
 from pyramid_swagger.tween import PyramidSwaggerRequest
@@ -36,36 +35,6 @@ from pyramid_swagger.tween import SWAGGER_12
 from pyramid_swagger.tween import SWAGGER_20
 from pyramid_swagger.tween import validate_response
 from pyramid_swagger.tween import validation_error
-
-
-def assert_eq_regex_lists(left, right):
-    assert [r.pattern for r in left] == [r.pattern for r in right]
-
-
-def test_default_exclude_paths():
-    assert_eq_regex_lists(
-        get_exclude_paths(Mock(settings={})),
-        [re.compile(r) for r in DEFAULT_EXCLUDED_PATHS]
-    )
-
-
-def test_exclude_path_with_string():
-    path_string = r'/foo/'
-    registry = Mock(settings={'pyramid_swagger.exclude_paths': path_string})
-    assert_eq_regex_lists(
-        get_exclude_paths(registry),
-        [re.compile(r) for r in [path_string]]
-    )
-
-
-def test_exclude_path_with_overrides():
-    paths = [r'/foo/', r'/bar/']
-    compiled = get_exclude_paths(
-        Mock(settings={'pyramid_swagger.exclude_paths': paths}))
-    assert_eq_regex_lists(
-        compiled,
-        [re.compile(r) for r in paths]
-    )
 
 
 def test_response_content_type_missing_raises_5xx():
@@ -227,26 +196,6 @@ def test_get_op_for_request_not_found_when_no_match_in_swagger_spec():
     assert mock_bravado_core_get_op_for_request.call_count == 1
 
 
-def test_get_swagger_versions_success():
-    for versions in (['1.2'], ['2.0'], ['1.2', '2.0']):
-        settings = {'pyramid_swagger.swagger_versions': versions}
-        assert set(versions) == get_swagger_versions(settings)
-
-
-def test_get_swagger_versions_empty():
-    settings = {'pyramid_swagger.swagger_versions': []}
-    with pytest.raises(ValueError) as excinfo:
-        get_swagger_versions(settings)
-    assert 'pyramid_swagger.swagger_versions is empty' in str(excinfo.value)
-
-
-def test_get_swagger_versions_unsupported():
-    settings = {'pyramid_swagger.swagger_versions': ['10.0', '2.0']}
-    with pytest.raises(ValueError) as excinfo:
-        get_swagger_versions(settings)
-    assert 'Swagger version 10.0 is not supported' in str(excinfo.value)
-
-
 def test_validaton_error_decorator_transforms_SwaggerMappingError():
 
     @validation_error(RequestValidationError)
@@ -285,39 +234,43 @@ def settings():
     return Mock(spec=Settings)
 
 
-def test_get_swagger20_objects_if_only_swagger20_version_is_present(
-        settings, registry):
-    registry.settings['pyramid_swagger.swagger_versions'] = [SWAGGER_20]
+def test_get_swagger20_objects_if_only_swagger20_version_is_present(settings, registry):
+    registry.settings['pyramid_swagger_settings'] = PyramidSwaggerSettings.normalize(
+        {'pyramid_swagger.swagger_versions': [SWAGGER_20]}
+    )
     registry.settings['pyramid_swagger.schema20'] = 'schema20'
     swagger_handler, spec = get_swagger_objects(settings, {}, registry)
     assert 'swagger20_handler' in str(swagger_handler)
     assert 'schema20' == spec
 
 
-def test_get_swagger12_objects_if_only_swagger12_version_is_present(
-        settings, registry):
-    registry.settings['pyramid_swagger.swagger_versions'] = [SWAGGER_12]
+def test_get_swagger12_objects_if_only_swagger12_version_is_present(settings, registry):
+    registry.settings['pyramid_swagger_settings'] = PyramidSwaggerSettings.normalize(
+        {'pyramid_swagger.swagger_versions': [SWAGGER_12]}
+    )
     registry.settings['pyramid_swagger.schema12'] = 'schema12'
     swagger_handler, spec = get_swagger_objects(settings, {}, registry)
     assert 'swagger12_handler' in str(swagger_handler)
     assert 'schema12' == spec
 
 
-def test_get_swagger20_objects_if_both_present_but_no_prefer20_config(
-        settings, registry):
-    registry.settings['pyramid_swagger.swagger_versions'] = [
-        SWAGGER_12, SWAGGER_20]
+def test_get_swagger20_objects_if_both_present_but_no_prefer20_config(settings, registry):
+    registry.settings['pyramid_swagger_settings'] = PyramidSwaggerSettings.normalize(
+        {'pyramid_swagger.swagger_versions': [SWAGGER_12, SWAGGER_20]}
+    )
     registry.settings['pyramid_swagger.schema20'] = 'schema20'
     swagger_handler, spec = get_swagger_objects(settings, {}, registry)
     assert 'swagger20_handler' in str(swagger_handler)
     assert 'schema20' == spec
 
 
-def test_get_swagger20_objects_if_both_present_but_route_in_prefer20(
-        settings, registry):
-    settings.prefer_20_routes = ['swagger20_route']
-    registry.settings['pyramid_swagger.swagger_versions'] = [
-        SWAGGER_12, SWAGGER_20]
+def test_get_swagger20_objects_if_both_present_but_route_in_prefer20(settings, registry):
+    registry.settings['pyramid_swagger_settings'] = PyramidSwaggerSettings.normalize(
+        {
+            'pyramid_swagger.swagger_versions': [SWAGGER_12, SWAGGER_20],
+            'pyramid_swagger.prefer_20_routes': ['swagger20_route'],
+        }
+    )
     route_info = {'route': Mock()}
     route_info['route'].name = 'swagger20_route'
     registry.settings['pyramid_swagger.schema20'] = 'schema20'
@@ -326,22 +279,25 @@ def test_get_swagger20_objects_if_both_present_but_route_in_prefer20(
     assert 'schema20' == spec
 
 
-def test_get_swagger20_objects_if_both_present_but_request_has_no_route(
-        settings, registry):
+def test_get_swagger20_objects_if_both_present_but_request_has_no_route(settings, registry):
+    registry.settings['pyramid_swagger_settings'] = PyramidSwaggerSettings.normalize(
+        {'pyramid_swagger.swagger_versions': [SWAGGER_12, SWAGGER_20]}
+    )
     settings.prefer_20_routes = ['swagger20_route']
-    registry.settings['pyramid_swagger.swagger_versions'] = [
-        SWAGGER_12, SWAGGER_20]
     registry.settings['pyramid_swagger.schema20'] = 'schema20'
     swagger_handler, spec = get_swagger_objects(settings, {}, registry)
     assert 'swagger20_handler' in str(swagger_handler)
     assert 'schema20' == spec
 
 
-def test_get_swagger12_objects_if_both_present_but_route_not_in_prefer20(
-        settings, registry):
-    settings.prefer_20_routes = ['swagger20_route']
-    registry.settings['pyramid_swagger.swagger_versions'] = [
-        SWAGGER_12, SWAGGER_20]
+def test_get_swagger12_objects_if_both_present_but_route_not_in_prefer20(settings, registry):
+    registry.settings['pyramid_swagger_settings'] = PyramidSwaggerSettings.normalize(
+        {
+            'pyramid_swagger.swagger_versions': [SWAGGER_12, SWAGGER_20],
+            'pyramid_swagger.prefer_20_routes': ['swagger20_route'],
+        }
+    )
+
     route_info = {'route': Mock()}
     route_info['route'].name = 'swagger12_route'
     registry.settings['pyramid_swagger.schema12'] = 'schema12'

@@ -6,6 +6,7 @@ import functools
 import logging
 import re
 import sys
+import warnings
 from collections import namedtuple
 from contextlib import contextmanager
 
@@ -22,19 +23,17 @@ from bravado_core.request import unmarshal_request
 from bravado_core.response import get_response_spec
 from bravado_core.response import OutgoingResponse
 from pyramid.interfaces import IRoutesMapper
-from pyramid.settings import asbool
-from pyramid.settings import aslist
 
 from pyramid_swagger.exceptions import PathNotFoundError
 from pyramid_swagger.exceptions import RequestAuthenticationError
 from pyramid_swagger.exceptions import RequestValidationError
 from pyramid_swagger.exceptions import ResponseValidationError
 from pyramid_swagger.model import PathNotMatchedError
-from pyramid_swagger.settings import DEFAULT_EXCLUDED_PATHS  # imported to guarantee backward compatibility
-from pyramid_swagger.settings import DEFAULT_SWAGGER_VERSIONS  # imported to guarantee backward compatibility
-from pyramid_swagger.settings import SUPPORTED_SWAGGER_VERSIONS  # imported to guarantee backward compatibility
-from pyramid_swagger.settings import SWAGGER_12  # imported to guarantee backward compatibility
-from pyramid_swagger.settings import SWAGGER_20  # imported to guarantee backward compatibility
+from pyramid_swagger.settings import DEFAULT_EXCLUDED_PATHS  # noqa: imported to guarantee backward compatibility
+from pyramid_swagger.settings import DEFAULT_SWAGGER_VERSIONS  # noqa: imported to guarantee backward compatibility
+from pyramid_swagger.settings import SUPPORTED_SWAGGER_VERSIONS  # noqa: imported to guarantee backward compatibility
+from pyramid_swagger.settings import SWAGGER_12
+from pyramid_swagger.settings import SWAGGER_20
 
 
 log = logging.getLogger(__name__)
@@ -80,9 +79,8 @@ def noop_context(request, response=None):
 
 
 def _get_validation_context(registry):
-    validation_context_path = registry.settings.get(
-        'pyramid_swagger.validation_context_path',
-    )
+    pyramid_swagger_settings = registry.settings['pyramid_swagger_settings']
+    validation_context_path = pyramid_swagger_settings.validation_context_path
 
     if validation_context_path:
         m = re.match(
@@ -93,7 +91,7 @@ def _get_validation_context(registry):
         contextmanager_name = m.group('contextmanager_name')
 
         return getattr(
-            __import__(module_path, fromlist=contextmanager_name),
+            __import__(module_path, fromlist=[contextmanager_name]),
             contextmanager_name,
         )
     else:
@@ -116,17 +114,19 @@ def get_swagger_objects(settings, route_info, registry):
              :class:`pyramid_swagger.model.SwaggerSchema` OR
                 :class:`bravado_core.spec.Spec`)
     """
-    enabled_swagger_versions = get_swagger_versions(registry.settings)
+    pyramid_swagger_settings = registry.settings['pyramid_swagger_settings']
+    enabled_swagger_versions = pyramid_swagger_settings.swagger_versions
     schema12 = registry.settings['pyramid_swagger.schema12']
     schema20 = registry.settings['pyramid_swagger.schema20']
 
-    if (
+    fallback_to_swagger12_route = (
         SWAGGER_20 in enabled_swagger_versions
         and SWAGGER_12 in enabled_swagger_versions
-        and settings.prefer_20_routes
+        and pyramid_swagger_settings.prefer_20_routes
         and route_info.get('route')
-        and route_info['route'].name not in settings.prefer_20_routes
-    ):
+        and route_info['route'].name not in pyramid_swagger_settings.prefer_20_routes
+    )
+    if fallback_to_swagger12_route:
         return settings.swagger12_handler, schema12
 
     if SWAGGER_20 in enabled_swagger_versions:
@@ -360,32 +360,18 @@ def handle_request(request, validator_map, **kwargs):
 
 def load_settings(registry):
     return Settings(
-        swagger12_handler=build_swagger12_handler(
-            registry.settings.get('pyramid_swagger.schema12')),
+        swagger12_handler=build_swagger12_handler(registry.settings.get('pyramid_swagger.schema12')),
         swagger20_handler=build_swagger20_handler(),
-        validate_request=asbool(registry.settings.get(
-            'pyramid_swagger.enable_request_validation',
-            True,
-        )),
-        validate_response=asbool(registry.settings.get(
-            'pyramid_swagger.enable_response_validation',
-            True,
-        )),
-        validate_path=asbool(registry.settings.get(
-            'pyramid_swagger.enable_path_validation',
-            True,
-        )),
-        exclude_paths=get_exclude_paths(registry),
-        exclude_routes=set(aslist(registry.settings.get(
-            'pyramid_swagger.exclude_routes',
-        ) or [])),
-        prefer_20_routes=set(aslist(registry.settings.get(
-            'pyramid_swagger.prefer_20_routes') or [])),
+        validate_request=registry.settings['pyramid_swagger_settings'].enable_request_validation,
+        validate_response=registry.settings['pyramid_swagger_settings'].enable_response_validation,
+        validate_path=registry.settings['pyramid_swagger_settings'].enable_path_validation,
+        exclude_paths=registry.settings['pyramid_swagger_settings'].exclude_paths_regexes,
+        exclude_routes=set(registry.settings['pyramid_swagger_settings'].exclude_routes),
+        prefer_20_routes=set(registry.settings['pyramid_swagger_settings'].prefer_20_routes),
     )
 
 
-SwaggerHandler = namedtuple('SwaggerHandler',
-                            'op_for_request handle_request handle_response')
+SwaggerHandler = namedtuple('SwaggerHandler', 'op_for_request handle_request handle_response')
 
 
 def build_swagger20_handler():
@@ -408,22 +394,6 @@ def build_swagger12_handler(schema):
             handle_request=handle_request,
             handle_response=validate_response,
         )
-
-
-def get_exclude_paths(registry):
-    """Compiles a list of paths that should not be validated against.
-        :rtype: list of compiled validation regexes
-    """
-    regexes = registry.settings.get(
-        'pyramid_swagger.exclude_paths',
-        DEFAULT_EXCLUDED_PATHS,
-    )
-
-    # being nice to users using strings :p
-    if not isinstance(regexes, list) and not isinstance(regexes, tuple):
-        regexes = [regexes]
-
-    return [re.compile(r) for r in regexes]
 
 
 def is_swagger_documentation_route(route_info):
@@ -635,16 +605,10 @@ def get_swagger_versions(settings):
 
     :type settings: dict
     :return: list of strings. eg ['1.2', '2.0']
-    :raises: ValueError when an unsupported Swagger version is encountered.
     """
-    swagger_versions = set(aslist(settings.get(
-        'pyramid_swagger.swagger_versions', DEFAULT_SWAGGER_VERSIONS)))
-
-    if len(swagger_versions) == 0:
-        raise ValueError('pyramid_swagger.swagger_versions is empty')
-
-    for swagger_version in swagger_versions:
-        if swagger_version not in SUPPORTED_SWAGGER_VERSIONS:
-            raise ValueError('Swagger version {0} is not supported.'
-                             .format(swagger_version))
-    return swagger_versions
+    warnings.warn(
+        "get_swagger_versions(settings) is deprecated, "
+        "use settings['pyramid_swagger_settings'].swagger_versions",
+        DeprecationWarning, stacklevel=2,
+    )
+    return settings['pyramid_swagger_settings'].swagger_versions

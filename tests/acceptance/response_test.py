@@ -16,6 +16,7 @@ from webob.multidict import MultiDict
 from webtest import AppError
 
 import pyramid_swagger.tween
+from pyramid_swagger import PyramidSwaggerSettings
 from pyramid_swagger.exceptions import ResponseValidationError
 from pyramid_swagger.ingest import compile_swagger_schema
 from pyramid_swagger.ingest import get_resource_listing
@@ -79,14 +80,18 @@ def _validate_against_tween(request, response=None, **overrides):
     def handler(request):
         return response or Response()
 
-    settings = dict({
-        'pyramid_swagger.swagger_versions': ['1.2'],
-        'pyramid_swagger.enable_swagger_spec_validation': False,
-        'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/'},
-        **overrides
-    )
-    settings['pyramid_swagger.schema12'] = get_swagger_schema()
-    settings['pyramid_swagger.schema20'] = None
+    settings = {
+        'pyramid_swagger_settings': PyramidSwaggerSettings.normalize(dict(
+            {
+                'pyramid_swagger.swagger_versions': ['1.2'],
+                'pyramid_swagger.enable_swagger_spec_validation': False,
+                'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
+            },
+            **overrides
+        )),
+        'pyramid_swagger.schema12': get_swagger_schema(),
+        'pyramid_swagger.schema20': None,
+    }
     registry = get_registry(settings)
 
     # Let's make request validation a no-op so we can focus our tests.

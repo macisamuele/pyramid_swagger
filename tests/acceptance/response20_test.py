@@ -15,6 +15,7 @@ from pyramid.interfaces import IRoutesMapper
 from pyramid.response import Response
 from webtest.app import AppError
 
+from pyramid_swagger import PyramidSwaggerSettings
 from pyramid_swagger.exceptions import ResponseValidationError
 from pyramid_swagger.ingest import get_swagger_spec
 from pyramid_swagger.tween import validation_tween_factory
@@ -25,8 +26,7 @@ from tests.acceptance.response_test import get_registry
 from tests.acceptance.response_test import validation_ctx_path
 
 
-def _validate_against_tween(request, response=None, path_pattern='/',
-                            **overrides):
+def _validate_against_tween(request, response=None, path_pattern='/', **overrides):
     """
     Acceptance testing helper for testing the swagger tween with Swagger 2.0
     responses.
@@ -39,13 +39,17 @@ def _validate_against_tween(request, response=None, path_pattern='/',
     def handler(request):
         return response or Response()
 
-    settings = dict({
-        'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
-        'pyramid_swagger.enable_swagger_spec_validation': False,
-        'pyramid_swagger.enable_response_validation': True,
-        'pyramid_swagger.swagger_versions': ['2.0']},
-        **overrides
-    )
+    settings = {
+        'pyramid_swagger_settings': PyramidSwaggerSettings.normalize(dict(
+            {
+                'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
+                'pyramid_swagger.enable_swagger_spec_validation': False,
+                'pyramid_swagger.enable_response_validation': True,
+                'pyramid_swagger.swagger_versions': ['2.0'],
+            },
+            **overrides
+        )),
+    }
 
     spec = get_swagger_spec(settings)
     settings['pyramid_swagger.schema12'] = None

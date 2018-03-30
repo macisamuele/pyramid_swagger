@@ -7,6 +7,7 @@ import mock
 import pytest
 import simplejson
 
+from pyramid_swagger import PyramidSwaggerSettings
 from pyramid_swagger.ingest import _load_resource_listing
 from pyramid_swagger.ingest import API_DOCS_FILENAME
 from pyramid_swagger.ingest import ApiDeclarationNotFoundError
@@ -39,37 +40,42 @@ def test_proper_error_on_missing_api_declaration():
     assert 'fake/sample_resource.json' in str(exc)
 
 
-@mock.patch('pyramid_swagger.ingest.build_http_handlers',
-            return_value={'file': mock.Mock()})
+@mock.patch('pyramid_swagger.ingest.build_http_handlers', return_value={'file': mock.Mock()})
 @mock.patch('os.path.abspath', return_value='/bar/foo/swagger.json')
 @mock.patch('pyramid_swagger.ingest.Spec.from_dict')
 def test_get_swagger_spec_passes_absolute_url(
     mock_spec, mock_abs, mock_http_handlers,
 ):
-    get_swagger_spec({'pyramid_swagger.schema_directory': 'foo/'})
+    get_swagger_spec({
+        'pyramid_swagger_settings': PyramidSwaggerSettings.normalize({
+            'pyramid_swagger.schema_directory': 'foo/',
+        }),
+    })
     mock_abs.assert_called_once_with('foo/swagger.json')
     expected_url = "file:///bar/foo/swagger.json"
-    mock_spec.assert_called_once_with(mock.ANY, config=mock.ANY,
-                                      origin_url=expected_url)
+    mock_spec.assert_called_once_with(mock.ANY, config=mock.ANY, origin_url=expected_url)
+    mock_http_handlers.assert_called_once_with(None)
 
 
 def test_get_swagger_schema_default():
-    settings = {
+    settings = {'pyramid_swagger_settings': PyramidSwaggerSettings.normalize({
         'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
-    }
+    })}
 
     swagger_schema = get_swagger_schema(settings)
     assert len(swagger_schema.pyramid_endpoints) == 6
     assert swagger_schema.resource_validators
 
 
-def test_get_swagger_schema_no_validation():
-    settings = {
-        'pyramid_swagger.schema_directory': 'tests/sample_schemas/bad_app/',
+@mock.patch('pyramid_swagger.ingest.compile_swagger_schema')
+def test_get_swagger_schema_no_validation(mock_compile_swagger_schema):
+    schema_directory = 'tests/sample_schemas/bad_app/'
+    settings = {'pyramid_swagger_settings': PyramidSwaggerSettings.normalize({
+        'pyramid_swagger.schema_directory': schema_directory,
         'pyramid_swagger.enable_swagger_spec_validation': False,
-    }
-    # No error means we skipped validation of the bad schema
+    })}
     get_swagger_schema(settings)
+    mock_compile_swagger_schema.assert_called_once_with(schema_directory, mock.ANY)
 
 
 def test_generate_resource_listing():
