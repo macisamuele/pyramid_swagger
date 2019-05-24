@@ -34,8 +34,11 @@ def test_required_validator_bool_not_required():
 
 def test_required_validator_list(mock_validator):
     required = ['one', 'two']
-    errors = list(load_schema.required_validator(
-        mock_validator, required, {}, {}))
+    errors = list(
+        load_schema.required_validator(
+            mock_validator, required, {}, {},
+        ),
+    )
     assert len(errors) == 2
 
 

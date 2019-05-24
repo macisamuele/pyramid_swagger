@@ -39,8 +39,10 @@ def test_proper_error_on_missing_api_declaration():
     assert 'fake/sample_resource.json' in str(exc)
 
 
-@mock.patch('pyramid_swagger.ingest.build_http_handlers',
-            return_value={'file': mock.Mock()})
+@mock.patch(
+    'pyramid_swagger.ingest.build_http_handlers',
+    return_value={'file': mock.Mock()},
+)
 @mock.patch('os.path.abspath', return_value='/bar/foo/swagger.json')
 @mock.patch('pyramid_swagger.ingest.Spec.from_dict')
 def test_get_swagger_spec_passes_absolute_url(
@@ -49,8 +51,10 @@ def test_get_swagger_spec_passes_absolute_url(
     get_swagger_spec({'pyramid_swagger.schema_directory': 'foo/'})
     mock_abs.assert_called_once_with('foo/swagger.json')
     expected_url = "file:///bar/foo/swagger.json"
-    mock_spec.assert_called_once_with(mock.ANY, config=mock.ANY,
-                                      origin_url=expected_url)
+    mock_spec.assert_called_once_with(
+        mock.ANY, config=mock.ANY,
+        origin_url=expected_url,
+    )
 
 
 def test_get_swagger_schema_default():
@@ -77,7 +81,7 @@ def test_generate_resource_listing():
 
     listing = generate_resource_listing(
         'tests/sample_schemas/good_app/',
-        listing
+        listing,
     )
 
     expected = {
@@ -88,14 +92,14 @@ def test_generate_resource_listing():
             {'path': '/other_sample'},
             {'path': '/post_endpoint_with_optional_body'},
             {'path': '/sample'},
-        ]
+        ],
     }
     assert listing == expected
 
 
 def test_generate_resource_listing_with_existing_listing():
     listing = {
-        'apis': [{'path': '/something'}]
+        'apis': [{'path': '/something'}],
     }
     with pytest.raises(ResourceListingGenerationError) as exc:
         generate_resource_listing('tests/sample_schemas/good_app/', listing)
@@ -137,7 +141,7 @@ def bravado_core_configs(bravado_core_formats):
         'validate_swagger_spec': True,
         'use_models': True,
         'formats': bravado_core_formats,
-        'include_missing_properties': False
+        'include_missing_properties': False,
     }
 
 
@@ -165,7 +169,7 @@ def test_create_bravado_core_config_with_passthrough_configs(bravado_core_format
         '{}validate_swagger_spec'.format(BRAVADO_CORE_CONFIG_PREFIX): True,
         '{}use_models'.format(BRAVADO_CORE_CONFIG_PREFIX): True,
         '{}formats'.format(BRAVADO_CORE_CONFIG_PREFIX): bravado_core_formats,
-        '{}include_missing_properties'.format(BRAVADO_CORE_CONFIG_PREFIX): False
+        '{}include_missing_properties'.format(BRAVADO_CORE_CONFIG_PREFIX): False,
     }
 
     bravado_core_config = create_bravado_core_config(pyramid_swagger_config)

@@ -36,7 +36,8 @@ def register_api_doc_endpoints(config, endpoints, base_path='/api-docs'):
         config.add_view(
             endpoint.view,
             route_name=endpoint.route_name,
-            renderer=endpoint.renderer)
+            renderer=endpoint.renderer,
+        )
 
 
 def build_swagger_12_endpoints(resource_listing, api_declarations):
@@ -52,7 +53,8 @@ def build_swagger_12_endpoints(resource_listing, api_declarations):
     for name, filepath in api_declarations.items():
         with open(filepath) as input_file:
             yield build_swagger_12_api_declaration(
-                name, simplejson.load(input_file))
+                name, simplejson.load(input_file),
+            )
 
 
 def build_swagger_12_resource_listing(resource_listing):
@@ -70,7 +72,8 @@ def build_swagger_12_resource_listing(resource_listing):
         path='',
         route_name='pyramid_swagger.swagger12.api_docs',
         view=view_for_resource_listing,
-        renderer='json')
+        renderer='json',
+    )
 
 
 def build_swagger_12_api_declaration(resource_name, api_declaration):
@@ -89,7 +92,8 @@ def build_swagger_12_api_declaration(resource_name, api_declaration):
         path='/{0}'.format(resource_name),
         route_name=route_name,
         view=build_swagger_12_api_declaration_view(api_declaration),
-        renderer='json')
+        renderer='json',
+    )
 
 
 def build_swagger_12_api_declaration_view(api_declaration_json):

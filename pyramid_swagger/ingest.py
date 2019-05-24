@@ -55,9 +55,13 @@ def find_resource_paths(schema_dir):
         return '/' + filename
 
     filenames = glob.glob('{0}/*.json'.format(schema_dir))
-    return map(filename_to_path,
-               filter(not_swagger_dot_json,
-                      filter(not_api_doc_file, sorted(filenames))))
+    return map(
+        filename_to_path,
+        filter(
+            not_swagger_dot_json,
+            filter(not_api_doc_file, sorted(filenames)),
+        ),
+    )
 
 
 def build_schema_mapping(schema_dir, resource_listing):
@@ -94,7 +98,7 @@ def _load_resource_listing(resource_listing):
     except IOError:
         raise ResourceListingNotFoundError(
             'No resource listing found at {0}. Note that your json file '
-            'must be named {1}'.format(resource_listing, API_DOCS_FILENAME)
+            'must be named {1}'.format(resource_listing, API_DOCS_FILENAME),
         )
 
 
@@ -102,11 +106,12 @@ def generate_resource_listing(schema_dir, listing_base):
     if 'apis' in listing_base:
         raise ResourceListingGenerationError(
             "{0}/{1} has an `apis` listing. Generating a listing would "
-            "override this listing.".format(schema_dir, API_DOCS_FILENAME))
+            "override this listing.".format(schema_dir, API_DOCS_FILENAME),
+        )
 
     return dict(
         listing_base,
-        apis=[{'path': path} for path in find_resource_paths(schema_dir)]
+        apis=[{'path': path} for path in find_resource_paths(schema_dir)],
     )
 
 
@@ -156,7 +161,7 @@ def get_swagger_schema(settings):
     schema_dir = settings.get('pyramid_swagger.schema_directory', 'api_docs')
     resource_listing = get_resource_listing(
         schema_dir,
-        settings.get('pyramid_swagger.generate_resource_listing', False)
+        settings.get('pyramid_swagger.generate_resource_listing', False),
     )
 
     if settings.get('pyramid_swagger.enable_swagger_spec_validation', True):
@@ -177,8 +182,10 @@ def get_swagger_spec(settings):
     :rtype: :class:`bravado_core.spec.Spec`
     """
     schema_dir = settings.get('pyramid_swagger.schema_directory', 'api_docs/')
-    schema_filename = settings.get('pyramid_swagger.schema_file',
-                                   'swagger.json')
+    schema_filename = settings.get(
+        'pyramid_swagger.schema_file',
+        'swagger.json',
+    )
     schema_path = os.path.join(schema_dir, schema_filename)
     schema_url = urlparse.urljoin('file:', pathname2url(os.path.abspath(schema_path)))
 
@@ -189,7 +196,8 @@ def get_swagger_spec(settings):
     return Spec.from_dict(
         spec_dict,
         config=create_bravado_core_config(settings),
-        origin_url=schema_url)
+        origin_url=schema_url,
+    )
 
 
 def create_bravado_core_config(settings):
@@ -251,6 +259,6 @@ def ingest_resources(mapping, schema_dir):
                 'No api declaration found at {0}. Attempted to load the `{1}` '
                 'resource relative to the schema_directory `{2}`. Perhaps '
                 'your resource name and API declaration file do not '
-                'match?'.format(filepath, name, schema_dir)
+                'match?'.format(filepath, name, schema_dir),
             )
     return ingested_resources

@@ -45,7 +45,7 @@ def assert_eq_regex_lists(left, right):
 def test_default_exclude_paths():
     assert_eq_regex_lists(
         get_exclude_paths(Mock(settings={})),
-        [re.compile(r) for r in DEFAULT_EXCLUDED_PATHS]
+        [re.compile(r) for r in DEFAULT_EXCLUDED_PATHS],
     )
 
 
@@ -54,17 +54,18 @@ def test_exclude_path_with_string():
     registry = Mock(settings={'pyramid_swagger.exclude_paths': path_string})
     assert_eq_regex_lists(
         get_exclude_paths(registry),
-        [re.compile(r) for r in [path_string]]
+        [re.compile(r) for r in [path_string]],
     )
 
 
 def test_exclude_path_with_overrides():
     paths = [r'/foo/', r'/bar/']
     compiled = get_exclude_paths(
-        Mock(settings={'pyramid_swagger.exclude_paths': paths}))
+        Mock(settings={'pyramid_swagger.exclude_paths': paths}),
+    )
     assert_eq_regex_lists(
         compiled,
-        [re.compile(r) for r in paths]
+        [re.compile(r) for r in paths],
     )
 
 
@@ -73,8 +74,9 @@ def test_exclude_path_with_old_setting():
     paths = [r'/foo/', r'/bar/']
     assert_eq_regex_lists(
         get_exclude_paths(
-            Mock(settings={'pyramid_swagger.skip_validation': paths})),
-        [re.compile(r) for r in paths]
+            Mock(settings={'pyramid_swagger.skip_validation': paths}),
+        ),
+        [re.compile(r) for r in paths],
     )
 
 
@@ -156,7 +158,8 @@ def test_raw_string():
     validator_map = mock.Mock(spec=ValidatorMap, response=fake_validator)
     validate_response(response, validator_map)
     fake_validator.validate.assert_called_once_with(
-        response.body.decode('utf-8'))
+        response.body.decode('utf-8'),
+    )
 
 
 def build_mock_validator(properties):
@@ -166,7 +169,7 @@ def build_mock_validator(properties):
             'properties': dict(
                 (name, {'type': type_})
                 for name, type_ in properties.items()
-            )
+            ),
         },
     )
 
@@ -211,8 +214,10 @@ def test_get_op_for_request_found():
     request = Mock(spec=Request)
     route_info = {'route': Mock(spec=Route, path='/foo/{id}')}
     expected_op = Mock(spec=Operation)
-    swagger_spec = Mock(spec=Spec,
-                        get_op_for_request=Mock(return_value=expected_op))
+    swagger_spec = Mock(
+        spec=Spec,
+        get_op_for_request=Mock(return_value=expected_op),
+    )
     assert expected_op == get_op_for_request(request, route_info, swagger_spec)
 
 
@@ -230,7 +235,8 @@ def test_get_op_for_request_not_found_when_no_match_in_swagger_spec():
     route_info = {'route': Mock(spec=Route, path='/foo/{id}')}
     mock_bravado_core_get_op_for_request = Mock(return_value=None)
     swagger_spec = Mock(
-        spec=Spec, get_op_for_request=mock_bravado_core_get_op_for_request)
+        spec=Spec, get_op_for_request=mock_bravado_core_get_op_for_request,
+    )
     with pytest.raises(PathNotMatchedError) as excinfo:
         get_op_for_request(request, route_info, swagger_spec)
     assert 'Could not find a matching Swagger operation' in str(excinfo.value)
@@ -296,7 +302,8 @@ def settings():
 
 
 def test_get_swagger20_objects_if_only_swagger20_version_is_present(
-        settings, registry):
+        settings, registry,
+):
     registry.settings['pyramid_swagger.swagger_versions'] = [SWAGGER_20]
     registry.settings['pyramid_swagger.schema20'] = 'schema20'
     swagger_handler, spec = get_swagger_objects(settings, {}, registry)
@@ -305,7 +312,8 @@ def test_get_swagger20_objects_if_only_swagger20_version_is_present(
 
 
 def test_get_swagger12_objects_if_only_swagger12_version_is_present(
-        settings, registry):
+        settings, registry,
+):
     registry.settings['pyramid_swagger.swagger_versions'] = [SWAGGER_12]
     registry.settings['pyramid_swagger.schema12'] = 'schema12'
     swagger_handler, spec = get_swagger_objects(settings, {}, registry)
@@ -314,9 +322,11 @@ def test_get_swagger12_objects_if_only_swagger12_version_is_present(
 
 
 def test_get_swagger20_objects_if_both_present_but_no_prefer20_config(
-        settings, registry):
+        settings, registry,
+):
     registry.settings['pyramid_swagger.swagger_versions'] = [
-        SWAGGER_12, SWAGGER_20]
+        SWAGGER_12, SWAGGER_20,
+    ]
     registry.settings['pyramid_swagger.schema20'] = 'schema20'
     swagger_handler, spec = get_swagger_objects(settings, {}, registry)
     assert 'swagger20_handler' in str(swagger_handler)
@@ -324,10 +334,12 @@ def test_get_swagger20_objects_if_both_present_but_no_prefer20_config(
 
 
 def test_get_swagger20_objects_if_both_present_but_route_in_prefer20(
-        settings, registry):
+        settings, registry,
+):
     settings.prefer_20_routes = ['swagger20_route']
     registry.settings['pyramid_swagger.swagger_versions'] = [
-        SWAGGER_12, SWAGGER_20]
+        SWAGGER_12, SWAGGER_20,
+    ]
     route_info = {'route': Mock()}
     route_info['route'].name = 'swagger20_route'
     registry.settings['pyramid_swagger.schema20'] = 'schema20'
@@ -337,10 +349,12 @@ def test_get_swagger20_objects_if_both_present_but_route_in_prefer20(
 
 
 def test_get_swagger20_objects_if_both_present_but_request_has_no_route(
-        settings, registry):
+        settings, registry,
+):
     settings.prefer_20_routes = ['swagger20_route']
     registry.settings['pyramid_swagger.swagger_versions'] = [
-        SWAGGER_12, SWAGGER_20]
+        SWAGGER_12, SWAGGER_20,
+    ]
     registry.settings['pyramid_swagger.schema20'] = 'schema20'
     swagger_handler, spec = get_swagger_objects(settings, {}, registry)
     assert 'swagger20_handler' in str(swagger_handler)
@@ -348,10 +362,12 @@ def test_get_swagger20_objects_if_both_present_but_request_has_no_route(
 
 
 def test_get_swagger12_objects_if_both_present_but_route_not_in_prefer20(
-        settings, registry):
+        settings, registry,
+):
     settings.prefer_20_routes = ['swagger20_route']
     registry.settings['pyramid_swagger.swagger_versions'] = [
-        SWAGGER_12, SWAGGER_20]
+        SWAGGER_12, SWAGGER_20,
+    ]
     route_info = {'route': Mock()}
     route_info['route'].name = 'swagger12_route'
     registry.settings['pyramid_swagger.schema12'] = 'schema12'
@@ -383,7 +399,7 @@ def test_request_properties():
 def test_response_properties():
     root_response = Response(
         headers={"X-Some-Special-Header": "foobar"},
-        body=b'{"myKey": 42}'
+        body=b'{"myKey": 42}',
     )
     # these must be set for the "text" attribute of webob.Response to be
     # readable, and setting them in the constructor gets into a conflict

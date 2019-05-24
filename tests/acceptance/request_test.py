@@ -16,12 +16,14 @@ def build_test_app(swagger_versions, **overrides):
     """Fixture for setting up a test test_app with particular settings."""
     from tests.acceptance.app import main
     from webtest import TestApp as App
-    settings = dict({
-        'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
-        'pyramid_swagger.enable_request_validation': True,
-        'pyramid_swagger.enable_response_validation': False,
-        'pyramid_swagger.enable_swagger_spec_validation': False,
-        'pyramid_swagger.swagger_versions': swagger_versions},
+    settings = dict(
+        {
+            'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
+            'pyramid_swagger.enable_request_validation': True,
+            'pyramid_swagger.enable_response_validation': False,
+            'pyramid_swagger.enable_swagger_spec_validation': False,
+            'pyramid_swagger.swagger_versions': swagger_versions,
+        },
         **overrides
     )
 
@@ -303,7 +305,8 @@ def test_path_validation_context():
 def test_request_validation_context():
     app = build_test_app(
         swagger_versions=['2.0'],
-        **{'pyramid_swagger.validation_context_path': validation_ctx_path})
+        **{'pyramid_swagger.validation_context_path': validation_ctx_path}
+    )
     response = app.get('/get_with_non_string_query_args', params={})
     assert response.status_code == 206
 

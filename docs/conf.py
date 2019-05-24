@@ -174,8 +174,10 @@ htmlhelp_basename = 'pyramid_swaggerdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'pyramid_swagger.tex', u'pyramid\\_swagger Documentation',
-     u'Scott Triglia', 'manual'),
+    (
+        'index', 'pyramid_swagger.tex', u'pyramid\\_swagger Documentation',
+        u'Scott Triglia', 'manual',
+    ),
 ]
 latex_elements = {
     # Additional stuff for the LaTeX preamble. See

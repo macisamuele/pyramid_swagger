@@ -27,7 +27,7 @@ def settings():
         'pyramid_swagger.schema_directory': dir_path,
         'pyramid_swagger.enable_request_validation': True,
         'pyramid_swagger.enable_swagger_spec_validation': True,
-        'pyramid_swagger.swagger_versions': ['2.0']
+        'pyramid_swagger.swagger_versions': ['2.0'],
     }
 
 
@@ -87,7 +87,7 @@ def test_swagger_schema_retrieval(schema_format, test_app):
     ]
     for expected_file in expected_files:
         response = test_app.get(
-            '/{0}.{1}'.format(expected_file, schema_format)
+            '/{0}.{1}'.format(expected_file, schema_format),
         )
         assert response.status_code == 200
 
@@ -119,7 +119,7 @@ def test_swagger_schema_retrieval_is_not_dereferenced(schema_format, test_app):
         '..',
         'sample_schemas',
         'relative_ref',
-        'dereferenced_swagger.json'
+        'dereferenced_swagger.json',
     ]
     dereferenced_swagger_path = os.path.join(*swagger_path_parts)
     with open(dereferenced_swagger_path) as swagger_file:
@@ -143,7 +143,7 @@ def test_dereferenced_swagger_schema_retrieval(schema_format, test_app_deref):
         '..',
         'sample_schemas',
         'relative_ref',
-        'dereferenced_swagger.json'
+        'dereferenced_swagger.json',
     ]
     dereferenced_swagger_path = os.path.join(*swagger_path_parts)
     with open(dereferenced_swagger_path) as swagger_file:

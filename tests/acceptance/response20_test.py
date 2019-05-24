@@ -25,8 +25,10 @@ from tests.acceptance.response_test import get_registry
 from tests.acceptance.response_test import validation_ctx_path
 
 
-def _validate_against_tween(request, response=None, path_pattern='/',
-                            **overrides):
+def _validate_against_tween(
+    request, response=None, path_pattern='/',
+    **overrides
+):
     """
     Acceptance testing helper for testing the swagger tween with Swagger 2.0
     responses.
@@ -39,11 +41,13 @@ def _validate_against_tween(request, response=None, path_pattern='/',
     def handler(request):
         return response or Response()
 
-    settings = dict({
-        'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
-        'pyramid_swagger.enable_swagger_spec_validation': False,
-        'pyramid_swagger.enable_response_validation': True,
-        'pyramid_swagger.swagger_versions': ['2.0']},
+    settings = dict(
+        {
+            'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
+            'pyramid_swagger.enable_swagger_spec_validation': False,
+            'pyramid_swagger.enable_response_validation': True,
+            'pyramid_swagger.swagger_versions': ['2.0'],
+        },
         **overrides
     )
 
@@ -61,8 +65,10 @@ def _validate_against_tween(request, response=None, path_pattern='/',
     mock_route_info = {'match': request.matchdict, 'route': None}
     mock_route_mapper = Mock(spec=IRoutesMapper, return_value=mock_route_info)
     with patch('pyramid_swagger.tween.get_op_for_request', return_value=op):
-        with patch('pyramid.registry.Registry.queryUtility',
-                   return_value=mock_route_mapper):
+        with patch(
+            'pyramid.registry.Registry.queryUtility',
+            return_value=mock_route_mapper,
+        ):
             validation_tween_factory(handler, registry)(request)
 
 
@@ -83,7 +89,8 @@ def test_response_validation_enabled_by_default():
         _validate_against_tween(
             request,
             response=response,
-            path_pattern='/sample/{path_arg}/resource')
+            path_pattern='/sample/{path_arg}/resource',
+        )
 
 
 def test_500_when_response_is_missing_required_field():
@@ -105,7 +112,8 @@ def test_500_when_response_is_missing_required_field():
         _validate_against_tween(
             request,
             response=response,
-            path_pattern='/sample/{path_arg}/resource')
+            path_pattern='/sample/{path_arg}/resource',
+        )
 
     assert "'logging_info' is a required property" in str(excinfo.value)
 
@@ -124,7 +132,8 @@ def test_200_when_response_is_void_with_none_response():
     _validate_against_tween(
         request,
         response=response,
-        path_pattern='/sample/nonstring/{int_arg}/{float_arg}/{boolean_arg}')
+        path_pattern='/sample/nonstring/{int_arg}/{float_arg}/{boolean_arg}',
+    )
 
 
 def test_200_when_response_is_void_with_empty_response():
@@ -138,7 +147,8 @@ def test_200_when_response_is_void_with_empty_response():
     _validate_against_tween(
         request,
         response=response,
-        path_pattern='/sample/nonstring/{int_arg}/{float_arg}/{boolean_arg}')
+        path_pattern='/sample/nonstring/{int_arg}/{float_arg}/{boolean_arg}',
+    )
 
 
 def test_500_when_response_arg_is_wrong_type():
@@ -151,7 +161,7 @@ def test_500_when_response_arg_is_wrong_type():
     response = Response(
         body=simplejson.dumps({
             'raw_response': 1.0,  # <-- is supposed to be a string
-            'logging_info': {'foo': 'bar'}
+            'logging_info': {'foo': 'bar'},
         }),
         headers={'Content-Type': 'application/json; charset=UTF-8'},
     )
@@ -159,7 +169,8 @@ def test_500_when_response_arg_is_wrong_type():
         _validate_against_tween(
             request,
             response=response,
-            path_pattern='/sample/{path_arg}/resource')
+            path_pattern='/sample/{path_arg}/resource',
+        )
 
     assert "1.0 is not of type " in str(excinfo.value)
 
@@ -177,7 +188,8 @@ def test_500_for_bad_validated_array_response():
         _validate_against_tween(
             request,
             response=response,
-            path_pattern='/sample_array_response')
+            path_pattern='/sample_array_response',
+        )
 
     assert "'bad_enum_value' is not one of " in \
            str(excinfo.value)
@@ -196,7 +208,8 @@ def test_200_for_good_validated_array_response():
     _validate_against_tween(
         request,
         response=response,
-        path_pattern='/sample_array_response')
+        path_pattern='/sample_array_response',
+    )
 
 
 def test_200_for_normal_response_validation():

@@ -23,7 +23,8 @@ def test_disable_api_doc_views(_1, _2, mock_register):
 
     mock_config = mock.Mock(
         spec=Configurator,
-        registry=mock.Mock(spec=Registry, settings=settings))
+        registry=mock.Mock(spec=Registry, settings=settings),
+    )
 
     pyramid_swagger.includeme(mock_config)
     assert not mock_register.called
@@ -49,7 +50,8 @@ def test_bad_schema_not_validated_if_spec_validation_is_disabled(_):
         'pyramid_swagger.enable_api_doc_views': False,
     }
     mock_config = mock.Mock(
-        spec=Configurator, registry=mock.Mock(settings=settings))
+        spec=Configurator, registry=mock.Mock(settings=settings),
+    )
     pyramid_swagger.includeme(mock_config)
 
 
@@ -57,7 +59,7 @@ def test_bad_schema_not_validated_if_spec_validation_is_disabled(_):
 def test_swagger_12_only(mock_register):
     settings = {
         'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
-        'pyramid_swagger.swagger_versions': ['1.2']
+        'pyramid_swagger.swagger_versions': ['1.2'],
     }
     mock_config = mock.Mock(registry=mock.Mock(settings=settings))
     pyramid_swagger.includeme(mock_config)
@@ -69,7 +71,7 @@ def test_swagger_12_only(mock_register):
 def test_swagger_20_only(mock_register):
     settings = {
         'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
-        'pyramid_swagger.swagger_versions': ['2.0']
+        'pyramid_swagger.swagger_versions': ['2.0'],
     }
     mock_config = mock.Mock(registry=mock.Mock(settings=settings))
     pyramid_swagger.includeme(mock_config)
@@ -82,7 +84,7 @@ def test_swagger_20_only(mock_register):
 def test_swagger_12_and_20(mock_register):
     settings = {
         'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
-        'pyramid_swagger.swagger_versions': ['1.2', '2.0']
+        'pyramid_swagger.swagger_versions': ['1.2', '2.0'],
     }
     mock_config = mock.Mock(registry=mock.Mock(settings=settings))
     pyramid_swagger.includeme(mock_config)

@@ -139,7 +139,7 @@ class TestPyramidSwaggerRendererFactoryIntegrationTest(object):
                                     'date': {
                                         'type': 'string',
                                         'format': 'date',
-                                    }
+                                    },
                                 },
                                 'type': 'object',
                             },

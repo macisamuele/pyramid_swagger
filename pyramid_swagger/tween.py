@@ -48,19 +48,21 @@ DEFAULT_EXCLUDED_PATHS = [
 ]
 
 
-class Settings(namedtuple(
-    'Settings',
-    [
-        'swagger12_handler',
-        'swagger20_handler',
-        'validate_request',
-        'validate_response',
-        'validate_path',
-        'exclude_paths',
-        'exclude_routes',
-        'prefer_20_routes',
-    ]
-)):
+class Settings(
+    namedtuple(
+        'Settings',
+        [
+            'swagger12_handler',
+            'swagger20_handler',
+            'validate_request',
+            'validate_response',
+            'validate_path',
+            'exclude_paths',
+            'exclude_routes',
+            'prefer_20_routes',
+        ],
+    ),
+):
 
     """A settings object for configurable options.
 
@@ -160,15 +162,18 @@ def validation_tween_factory(handler, registry):
         # matchdict so we can validate it and use it to exclude routes from
         # validation.
         route_info = route_mapper(request)
-        swagger_handler, spec = get_swagger_objects(settings, route_info,
-                                                    registry)
+        swagger_handler, spec = get_swagger_objects(
+            settings, route_info,
+            registry,
+        )
 
         if should_exclude_request(settings, request, route_info):
             return handler(request)
 
         try:
             op_or_validators_map = swagger_handler.op_for_request(
-                request, route_info=route_info, spec=spec)
+                request, route_info=route_info, spec=spec,
+            )
         except PathNotMatchedError as exc:
             if settings.validate_path:
                 with validation_context(request):
@@ -369,31 +374,49 @@ def handle_request(request, validator_map, **kwargs):
 def load_settings(registry):
     return Settings(
         swagger12_handler=build_swagger12_handler(
-            registry.settings.get('pyramid_swagger.schema12')),
+            registry.settings.get('pyramid_swagger.schema12'),
+        ),
         swagger20_handler=build_swagger20_handler(),
-        validate_request=asbool(registry.settings.get(
-            'pyramid_swagger.enable_request_validation',
-            True,
-        )),
-        validate_response=asbool(registry.settings.get(
-            'pyramid_swagger.enable_response_validation',
-            True,
-        )),
-        validate_path=asbool(registry.settings.get(
-            'pyramid_swagger.enable_path_validation',
-            True,
-        )),
+        validate_request=asbool(
+            registry.settings.get(
+                'pyramid_swagger.enable_request_validation',
+                True,
+            ),
+        ),
+        validate_response=asbool(
+            registry.settings.get(
+                'pyramid_swagger.enable_response_validation',
+                True,
+            ),
+        ),
+        validate_path=asbool(
+            registry.settings.get(
+                'pyramid_swagger.enable_path_validation',
+                True,
+            ),
+        ),
         exclude_paths=get_exclude_paths(registry),
-        exclude_routes=set(aslist(registry.settings.get(
-            'pyramid_swagger.exclude_routes',
-        ) or [])),
-        prefer_20_routes=set(aslist(registry.settings.get(
-            'pyramid_swagger.prefer_20_routes') or [])),
+        exclude_routes=set(
+            aslist(
+                registry.settings.get(
+                    'pyramid_swagger.exclude_routes',
+                ) or [],
+            ),
+        ),
+        prefer_20_routes=set(
+            aslist(
+                registry.settings.get(
+                    'pyramid_swagger.prefer_20_routes',
+                ) or [],
+            ),
+        ),
     )
 
 
-SwaggerHandler = namedtuple('SwaggerHandler',
-                            'op_for_request handle_request handle_response')
+SwaggerHandler = namedtuple(
+    'SwaggerHandler',
+    'op_for_request handle_request handle_response',
+)
 
 
 def build_swagger20_handler():
@@ -427,8 +450,8 @@ def get_exclude_paths(registry):
         'pyramid_swagger.skip_validation',
         registry.settings.get(
             'pyramid_swagger.exclude_paths',
-            DEFAULT_EXCLUDED_PATHS
-        )
+            DEFAULT_EXCLUDED_PATHS,
+        ),
     )
 
     # being nice to users using strings :p
@@ -452,7 +475,7 @@ def should_exclude_request(settings, request, route_info):
     disable_all_validation = not any((
         settings.validate_request,
         settings.validate_response,
-        settings.validate_path
+        settings.validate_path,
     ))
     return (
         disable_all_validation
@@ -515,8 +538,10 @@ def cast_request_param(param_type, param_name, param_value):
     try:
         return CAST_TYPE_TO_FUNC.get(param_type, lambda x: x)(param_value)
     except ValueError:
-        log.warn("Failed to cast %s value of %s to %s",
-                 param_name, param_value, param_type)
+        log.warn(
+            "Failed to cast %s value of %s to %s",
+            param_name, param_value, param_type,
+        )
         # Ignore type error, let jsonschema validation handle incorrect types
         return param_value
 
@@ -567,7 +592,7 @@ def prepare_body(response):
     # content_type must be set to access response.text
     if not response.content_type:
         raise ResponseValidationError(
-            'Response validation error: Content-Type must be set'
+            'Response validation error: Content-Type must be set',
         )
 
     if 'application/json' in response.content_type:
@@ -604,7 +629,8 @@ def swaggerize_response(response, op):
     """
     response_spec = get_response_spec(response.status_int, op)
     bravado_core.response.validate_response(
-        response_spec, op, PyramidSwaggerResponse(response))
+        response_spec, op, PyramidSwaggerResponse(response),
+    )
 
 
 def get_op_for_request(request, route_info, spec):
@@ -632,12 +658,14 @@ def get_op_for_request(request, route_info, spec):
             raise PathNotMatchedError(
                 "Could not find a matching Swagger "
                 "operation for {0} request {1}"
-                .format(request.method, request.url))
+                .format(request.method, request.url),
+            )
     else:
         raise PathNotMatchedError(
             "Could not find a matching route for {0} request {1}. "
             "Have you registered this endpoint with Pyramid?"
-            .format(request.method, request.url))
+            .format(request.method, request.url),
+        )
 
 
 def get_swagger_versions(settings):
@@ -649,14 +677,21 @@ def get_swagger_versions(settings):
     :return: list of strings. eg ['1.2', '2.0']
     :raises: ValueError when an unsupported Swagger version is encountered.
     """
-    swagger_versions = set(aslist(settings.get(
-        'pyramid_swagger.swagger_versions', DEFAULT_SWAGGER_VERSIONS)))
+    swagger_versions = set(
+        aslist(
+            settings.get(
+                'pyramid_swagger.swagger_versions', DEFAULT_SWAGGER_VERSIONS,
+            ),
+        ),
+    )
 
     if len(swagger_versions) == 0:
         raise ValueError('pyramid_swagger.swagger_versions is empty')
 
     for swagger_version in swagger_versions:
         if swagger_version not in SUPPORTED_SWAGGER_VERSIONS:
-            raise ValueError('Swagger version {0} is not supported.'
-                             .format(swagger_version))
+            raise ValueError(
+                'Swagger version {0} is not supported.'
+                .format(swagger_version),
+            )
     return swagger_versions

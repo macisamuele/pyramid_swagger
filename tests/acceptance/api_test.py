@@ -84,19 +84,27 @@ def test_default_only_serves_up_swagger_20_schema(default_test_app):
 
 
 def test_recursive_swagger_api_internal_refs():
-    recursive_test_app = App(main({}, **{
-        'pyramid_swagger.schema_directory':
-            'tests/sample_schemas/recursive_app/internal/',
-    }))
+    recursive_test_app = App(
+        main(
+            {}, **{
+                'pyramid_swagger.schema_directory':
+                    'tests/sample_schemas/recursive_app/internal/',
+            }
+        ),
+    )
 
     recursive_test_app.get('/swagger.json', status=200)
 
 
 def test_recursive_swagger_api_external_refs():
-    recursive_test_app = App(main({}, **{
-        'pyramid_swagger.schema_directory':
-            'tests/sample_schemas/recursive_app/external/',
-    }))
+    recursive_test_app = App(
+        main(
+            {}, **{
+                'pyramid_swagger.schema_directory':
+                    'tests/sample_schemas/recursive_app/external/',
+            }
+        ),
+    )
 
     recursive_test_app.get('/swagger.json', status=200)
     recursive_test_app.get('/external.json', status=200)
@@ -105,12 +113,16 @@ def test_recursive_swagger_api_external_refs():
 def test_base_path_api_docs_on_good_app_schema():
     base_path = '/web/base/path'
 
-    recursive_test_app = App(main({}, **{
-        'pyramid_swagger.schema_directory':
-            'tests/sample_schemas/good_app/',
-        'pyramid_swagger.base_path_api_docs':
-            base_path
-    }))
+    recursive_test_app = App(
+        main(
+            {}, **{
+                'pyramid_swagger.schema_directory':
+                    'tests/sample_schemas/good_app/',
+                'pyramid_swagger.base_path_api_docs':
+                    base_path,
+            }
+        ),
+    )
 
     recursive_test_app.get(base_path + '/swagger.json', status=200)
     recursive_test_app.get('/swagger.json', status=404)
@@ -118,12 +130,16 @@ def test_base_path_api_docs_on_good_app_schema():
 
 def test_base_path_api_docs_on_recursive_app_schema():
     base_path = '/some/path'
-    recursive_test_app = App(main({}, **{
-        'pyramid_swagger.schema_directory':
-            'tests/sample_schemas/recursive_app/external/',
-        'pyramid_swagger.base_path_api_docs':
-            base_path
-    }))
+    recursive_test_app = App(
+        main(
+            {}, **{
+                'pyramid_swagger.schema_directory':
+                    'tests/sample_schemas/recursive_app/external/',
+                'pyramid_swagger.base_path_api_docs':
+                    base_path,
+            }
+        ),
+    )
 
     recursive_test_app.get(base_path + '/swagger.json', status=200)
     recursive_test_app.get('/swagger.json', status=404)
@@ -134,12 +150,17 @@ def test_base_path_api_docs_on_recursive_app_schema():
 def test_base_path_api_docs_with_script_name_on_recursive_app_schema():
     base_path = '/some/path'
     script_name = '/scriptname'
-    test_app = App(main({}, **{
-        'pyramid_swagger.schema_directory':
-            'tests/sample_schemas/recursive_app/external/',
-        'pyramid_swagger.base_path_api_docs':
-            base_path}),
-        {'SCRIPT_NAME': script_name})
+    test_app = App(
+        main(
+            {}, **{
+                'pyramid_swagger.schema_directory':
+                'tests/sample_schemas/recursive_app/external/',
+                'pyramid_swagger.base_path_api_docs':
+                base_path,
+            }
+        ),
+        {'SCRIPT_NAME': script_name},
+    )
 
     test_app.get(script_name + base_path + '/swagger.json', status=200)
     test_app.get('/swagger.json', status=404)

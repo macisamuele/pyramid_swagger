@@ -42,7 +42,7 @@ def includeme(config):
 
     config.add_tween(
         "pyramid_swagger.tween.validation_tween_factory",
-        under=pyramid.tweens.EXCVIEW
+        under=pyramid.tweens.EXCVIEW,
     )
 
     config.add_renderer('pyramid_swagger', PyramidSwaggerRendererFactory())
@@ -51,10 +51,12 @@ def includeme(config):
         if SWAGGER_12 in swagger_versions:
             register_api_doc_endpoints(
                 config,
-                settings['pyramid_swagger.schema12'].get_api_doc_endpoints())
+                settings['pyramid_swagger.schema12'].get_api_doc_endpoints(),
+            )
 
         if SWAGGER_20 in swagger_versions:
             register_api_doc_endpoints(
                 config,
                 build_swagger_20_swagger_schema_views(config),
-                base_path=settings.get('pyramid_swagger.base_path_api_docs', ''))
+                base_path=settings.get('pyramid_swagger.base_path_api_docs', ''),
+            )

@@ -32,7 +32,7 @@ def build_config(schema_dir):
     return mock.Mock(
         registry=get_registry({
             'swagger_schema': get_swagger_schema(schema_dir),
-        })
+        }),
     )
 
 
@@ -40,7 +40,8 @@ def test_proper_error_on_missing_resource_listing():
     with pytest.raises(ResourceListingNotFoundError) as exc:
         register_api_doc_endpoints(
             build_config(
-                'tests/sample_schemas/missing_resource_listing/api_docs.json'),
+                'tests/sample_schemas/missing_resource_listing/api_docs.json',
+            ),
         )
     assert(
         'tests/sample_schemas/missing_resource_listing/' in str(exc)

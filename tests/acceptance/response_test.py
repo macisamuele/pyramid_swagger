@@ -64,7 +64,7 @@ def get_registry(settings):
 def get_swagger_schema(schema_dir='tests/sample_schemas/good_app/'):
     return compile_swagger_schema(
         schema_dir,
-        get_resource_listing(schema_dir, False)
+        get_resource_listing(schema_dir, False),
     )
 
 
@@ -79,10 +79,12 @@ def _validate_against_tween(request, response=None, **overrides):
     def handler(request):
         return response or Response()
 
-    settings = dict({
-        'pyramid_swagger.swagger_versions': ['1.2'],
-        'pyramid_swagger.enable_swagger_spec_validation': False,
-        'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/'},
+    settings = dict(
+        {
+            'pyramid_swagger.swagger_versions': ['1.2'],
+            'pyramid_swagger.enable_swagger_spec_validation': False,
+            'pyramid_swagger.schema_directory': 'tests/sample_schemas/good_app/',
+        },
         **overrides
     )
     settings['pyramid_swagger.schema12'] = get_swagger_schema()
@@ -164,7 +166,7 @@ def test_500_when_response_arg_is_wrong_type():
     response = Response(
         body=simplejson.dumps({
             'raw_response': 1.0,
-            'logging_info': {'foo': 'bar'}
+            'logging_info': {'foo': 'bar'},
         }),
         headers={'Content-Type': 'application/json; charset=UTF-8'},
     )
@@ -217,7 +219,7 @@ def test_200_skip_validation_for_excluded_path():
     )
     response = app.get(
         '/sample/path_arg1/resource',
-        params={'required_arg': 'test'}
+        params={'required_arg': 'test'},
     )
     assert response.status_code == 200
 

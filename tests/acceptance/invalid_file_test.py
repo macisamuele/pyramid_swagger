@@ -23,11 +23,13 @@ def settings():
 
 @pytest.fixture
 def yaml_app():
-    return SwaggerFormat(format='base64',
-                         to_wire=base64.b64encode,
-                         to_python=base64.b64decode,
-                         validate=base64.b64decode,
-                         description='base64')
+    return SwaggerFormat(
+        format='base64',
+        to_wire=base64.b64encode,
+        to_python=base64.b64decode,
+        validate=base64.b64decode,
+        description='base64',
+    )
 
 
 def test_invalid_file_extension(settings, yaml_app):

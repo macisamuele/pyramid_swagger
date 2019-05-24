@@ -24,7 +24,7 @@ def settings():
         'pyramid_swagger.schema_directory': dir_path,
         'pyramid_swagger.enable_request_validation': True,
         'pyramid_swagger.enable_swagger_spec_validation': True,
-        'pyramid_swagger.swagger_versions': ['2.0']
+        'pyramid_swagger.swagger_versions': ['2.0'],
     }
 
 

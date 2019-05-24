@@ -36,18 +36,24 @@ def test_app_with_prefer_conf(settings):
 def test_failure_with_no_prefer_config_case(test_app_with_no_prefer_conf):
     """The second get call should fail as it is not covered in v2.0 spec
     """
-    response = test_app_with_no_prefer_conf.get('/sample/path_arg1/resource',
-                                                params={'required_arg': 'a'},)
+    response = test_app_with_no_prefer_conf.get(
+        '/sample/path_arg1/resource',
+        params={'required_arg': 'a'},
+    )
     assert response.status_code == 200
     with pytest.raises(Exception):
         test_app_with_no_prefer_conf.get(
-            '/sample/nonstring/1/1.1/true', params={},)
+            '/sample/nonstring/1/1.1/true', params={},
+        )
 
 
 def test_success_with_prefer_config_case(test_app_with_prefer_conf):
-    response = test_app_with_prefer_conf.get('/sample/path_arg1/resource',
-                                             params={'required_arg': 'a'},)
+    response = test_app_with_prefer_conf.get(
+        '/sample/path_arg1/resource',
+        params={'required_arg': 'a'},
+    )
     assert response.status_code == 200
     response = test_app_with_prefer_conf.get(
-        '/sample/nonstring/1/1.1/true', params={},)
+        '/sample/nonstring/1/1.1/true', params={},
+    )
     assert response.status_code == 200

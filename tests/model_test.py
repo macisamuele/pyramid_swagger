@@ -18,7 +18,7 @@ def schema():
     schema_dir = 'tests/sample_schemas/good_app/'
     return compile_swagger_schema(
         schema_dir,
-        get_resource_listing(schema_dir, False)
+        get_resource_listing(schema_dir, False),
     )
 
 
@@ -30,7 +30,7 @@ def test_swagger_schema_for_request_different_methods(schema):
     value = schema.validators_for_request(
         request=mock.Mock(
             path_info="/sample",
-            method="GET"
+            method="GET",
         ),
     )
     assert value.body.schema is None
@@ -60,7 +60,7 @@ def test_swagger_schema_for_request_not_found(schema):
         schema.validators_for_request(
             request=mock.Mock(
                 path_info="/does_not_exist",
-                method="GET"
+                method="GET",
             ),
         )
     assert '/does_not_exist' in str(excinfo)
@@ -70,15 +70,15 @@ def test_swagger_schema_for_request_not_found(schema):
 def test_partial_path_match():
     assert partial_path_match(
         '/v1/bing/forward_unstructured',
-        '/v1/bing/forward_unstructured'
+        '/v1/bing/forward_unstructured',
     )
     assert partial_path_match(
         '/v1/{api_provider}/forward_unstructured',
-        '/v1/bing/forward_unstructured'
+        '/v1/bing/forward_unstructured',
     )
     assert not partial_path_match(
         '/v1/google/forward_unstructured',
-        '/v1/bing/forward_unstructured'
+        '/v1/bing/forward_unstructured',
     )
 
 
@@ -91,7 +91,7 @@ def test_swagger_schema_for_request_virtual_subpath(schema):
             path="/subpath/sample",
             script_name="/subpath",
             path_info="/sample",
-            method="GET"
+            method="GET",
         ),
     )
     assert value.body.schema is None

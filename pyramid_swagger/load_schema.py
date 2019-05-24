@@ -135,7 +135,7 @@ def get_body_validator(models):
             'name': ignore,
             'type': build_swagger_type_validator(models),
             'required': required_validator,
-        }
+        },
     )
 
 
@@ -145,12 +145,12 @@ Swagger12ParamValidator = validators.extend(
         'paramType': ignore,
         'name': ignore,
         'type': type_validator,
-    }
+    },
 )
 
 
 class ValidatorMap(
-    namedtuple('_VMap', 'query path form headers body response')
+    namedtuple('_VMap', 'query path form headers body response'),
 ):
     """
     A data object with validators for each part of the request and response
@@ -167,13 +167,18 @@ class ValidatorMap(
             (build_param_schema(operation, 'form'), Swagger12ParamValidator),
             (build_param_schema(operation, 'header'), Swagger12ParamValidator),
             (extract_body_schema(operation), get_body_validator(models)),
-            (extract_response_body_schema(operation, models),
-                Draft4Validator),
+            (
+                extract_response_body_schema(operation, models),
+                Draft4Validator,
+            ),
         ]:
-            args.append(SchemaValidator.from_schema(
-                schema,
-                resolver,
-                validator))
+            args.append(
+                SchemaValidator.from_schema(
+                    schema,
+                    resolver,
+                    validator,
+                ),
+            )
 
         return cls(*args)
 
@@ -197,7 +202,8 @@ class SchemaValidator(object):
     def from_schema(cls, schema, resolver, validator_class):
         return cls(
             schema,
-            validator_class(schema, resolver=resolver, types=EXTENDED_TYPES))
+            validator_class(schema, resolver=resolver, types=EXTENDED_TYPES),
+        )
 
     def validate(self, values):
         """Validate a :class:`dict` of values. If `self.schema` is falsy this
@@ -217,7 +223,7 @@ def build_request_to_validator_map(schema, resolver):
     return dict(
         (
             RequestMatcher(api['path'], operation['method']),
-            ValidatorMap.from_operation(operation, schema_models, resolver)
+            ValidatorMap.from_operation(operation, schema_models, resolver),
         )
         for api in schema['apis']
         for operation in api['operations']
@@ -245,7 +251,7 @@ def extract_response_body_schema(operation, schema_models):
 
     acceptable_fields = (
         'type', '$ref', 'format', 'defaultValue', 'enum', 'minimum',
-        'maximum', 'items', 'uniqueItems'
+        'maximum', 'items', 'uniqueItems',
     )
 
     return dict(

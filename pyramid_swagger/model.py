@@ -11,7 +11,8 @@ from collections import namedtuple
 
 PyramidEndpoint = namedtuple(
     'PyramidEndpoint',
-    'path route_name view renderer')
+    'path route_name view renderer',
+)
 
 
 class PathNotMatchedError(Exception):
@@ -53,7 +54,7 @@ class SwaggerSchema(object):
 
         raise PathNotMatchedError(
             'Could not find the relevant path ({0}) in the Swagger schema. '
-            'Perhaps you forgot to add it?'.format(request.path_info)
+            'Perhaps you forgot to add it?'.format(request.path_info),
         )
 
     def get_api_doc_endpoints(self):
