@@ -1,6 +1,7 @@
 .PHONY: clean docs install-hooks test
 
 all: venv install-hooks
+	@true
 
 test: install-hooks
 	tox
@@ -9,8 +10,8 @@ install-hooks: venv
 	venv/bin/pre-commit install -f --install-hooks
 
 venv: setup.py requirements-dev.txt
-	virtualenv venv
-	venv/bin/pip install -r requirements-dev.txt
+	virtualenv --python python3.6 venv
+	./venv/bin/pip install -r requirements-dev.txt
 
 docs:
 	tox -e docs

@@ -2,6 +2,7 @@
 bravado
 coverage
 mock
+mypy; python_version >= "3.4"
 ordereddict
 pre-commit
 pytest>=3

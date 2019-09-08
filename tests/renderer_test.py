@@ -4,12 +4,12 @@ from __future__ import absolute_import
 import datetime
 import json
 
+import mock
 import pytest
 from bravado_core.exception import MatchingResponseNotFound
 from bravado_core.exception import SwaggerMappingError
 from bravado_core.operation import Operation
 from bravado_core.spec import Spec
-from mock import mock
 from pyramid.testing import DummyRequest
 
 from pyramid_swagger import PyramidSwaggerRendererFactory
