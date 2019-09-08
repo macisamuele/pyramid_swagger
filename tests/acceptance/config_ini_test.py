@@ -24,7 +24,7 @@ def test_load_ini_settings(ini_app):
 
     # Make sure these settings are booleans
     assert settings.validate_request is True
-    assert settings.validate_response is False
+    assert settings.validate_response == 0.0
     assert settings.validate_path is True
     assert settings.exclude_routes == {'/undefined/first', '/undefined/second'}
     assert settings.prefer_20_routes == {'/sample'}

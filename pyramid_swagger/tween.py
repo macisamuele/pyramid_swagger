@@ -8,6 +8,7 @@ import re
 import sys
 from collections import namedtuple
 from contextlib import contextmanager
+from random import uniform
 
 import bravado_core
 import jsonschema.exceptions
@@ -195,7 +196,7 @@ def validation_tween_factory(handler, registry):
 
         response = handler(request)
 
-        if settings.validate_response:
+        if settings.validate_response and uniform(0, 1) <= settings.validate_response:
             with validation_context(request, response=response):
                 swagger_handler.handle_response(response, op_or_validators_map)
 
@@ -367,6 +368,23 @@ def handle_request(request, validator_map, **kwargs):
 
 
 def load_settings(registry):
+    def _load_response_validation():
+        raw_response_validation = registry.settings.get(
+            'pyramid_swagger.enable_response_validation',
+            True,
+        )
+        try:
+            response_validation = float(raw_response_validation)
+            if not (0 <= response_validation <= 1):
+                log.warning(
+                    'response_validation should be defined in [0,1] interval (current value: %f)',
+                    response_validation,
+                )
+                response_validation = min(1, max(0, response_validation))
+            return response_validation
+        except ValueError:
+            return float(asbool(raw_response_validation))
+
     return Settings(
         swagger12_handler=build_swagger12_handler(
             registry.settings.get('pyramid_swagger.schema12')),
@@ -375,10 +393,7 @@ def load_settings(registry):
             'pyramid_swagger.enable_request_validation',
             True,
         )),
-        validate_response=asbool(registry.settings.get(
-            'pyramid_swagger.enable_response_validation',
-            True,
-        )),
+        validate_response=_load_response_validation(),
         validate_path=asbool(registry.settings.get(
             'pyramid_swagger.enable_path_validation',
             True,
